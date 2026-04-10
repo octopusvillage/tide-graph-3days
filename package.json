@@ -1,0 +1,9 @@
+{
+  "name": "tide-graph-3days",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'use: vercel dev'",
+    "deploy": "vercel --prod"
+  }
+}

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>潮汐グラフ（3日間）</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    :root{--gap:2rem;}
+    body{font-family:system-ui,Arial,sans-serif;margin:2rem;background:#f5f7fa;}
+    h1{margin-bottom:1rem;}
+    form{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;align-items:end;}
+    .form-group{display:flex;flex-direction:column;gap:4px;}
+    .form-group label{font-size:.85rem;font-weight:600;color:#555;}
+    select,input[type="date"]{padding:8px;border:1px solid #ccc;border-radius:6px;font-size:15px;}
+    button{padding:8px 20px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:15px;cursor:pointer;}
+    button:hover{background:#1d4ed8;}
+    #charts{display:grid;gap:var(--gap);}
+    .chart-wrap{background:#fff;padding:16px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.1);}
+    .chart-wrap canvas{width:100%!important;height:auto!important;}
+    .error{color:#d00;margin-top:.5rem;}
+    .hint{font-size:.85rem;color:#555;margin-top:.25rem;}
+    #portLabel{font-size:1rem;font-weight:600;}
+    @media print{
+      @page{margin:10mm;}
+      body{margin:0;font-size:10pt;background:#fff;}
+      form,#hint,#err{display:none;}
+      h1{margin:0 0 4mm;font-size:14pt;}
+      :root{--gap:8mm;}
+      .chart-wrap{box-shadow:none;padding:4mm 0;}
+      .chart-wrap canvas{max-height:80mm;}
+    }
+  </style>
+</head>
+<body>
+<h1>🌊 潮汐グラフ <span id="portLabel"></span></h1>
+<form id="ctrl">
+  <div class="form-group">
+    <label for="prefSelect">都道府県</label>
+    <select id="prefSelect" required></select>
+  </div>
+  <div class="form-group">
+    <label for="portSelect">港</label>
+    <select id="portSelect" required></select>
+  </div>
+  <div class="form-group">
+    <label for="dateInput">日付</label>
+    <input type="date" id="dateInput" required>
+  </div>
+  <div class="form-group">
+    <label>&nbsp;</label>
+    <button type="submit">表示</button>
+  </div>
+</form>
+<p class="error" id="err"></p>
+<p class="hint" id="hint"></p>
+<div id="charts"></div>
+
+<script>
+/**************** 港データ (tide736.net pc/hc) *****************/
+const prefectures = [
+  {name:'北海道',pc:1,ports:[
+    {name:'函館',hc:1},{name:'小樽',hc:2},{name:'釧路',hc:3},{name:'根室花咲',hc:4},{name:'稚内',hc:5},
+    {name:'室蘭',hc:6},{name:'苫小牧',hc:7},{name:'十勝',hc:8},{name:'網走',hc:9},{name:'紋別',hc:10},
+    {name:'留萌',hc:11},{name:'浦河',hc:12},{name:'岩内',hc:13},{name:'江差',hc:14}
+  ]},
+  {name:'青森県',pc:2,ports:[
+    {name:'青森',hc:1},{name:'八戸',hc:2},{name:'むつ',hc:3},{name:'深浦',hc:4},{name:'鯵ヶ沢',hc:5}
+  ]},
+  {name:'岩手県',pc:3,ports:[
+    {name:'宮古',hc:1},{name:'釜石',hc:2},{name:'大船渡',hc:3},{name:'久慈',hc:4}
+  ]},
+  {name:'宮城県',pc:4,ports:[
+    {name:'石巻(鮎川)',hc:1},{name:'仙台(塩釜)',hc:2},{name:'気仙沼',hc:3}
+  ]},
+  {name:'秋田県',pc:5,ports:[
+    {name:'秋田',hc:1},{name:'能代',hc:2},{name:'船川',hc:3}
+  ]},
+  {name:'山形県',pc:6,ports:[
+    {name:'酒田',hc:1}
+  ]},
+  {name:'福島県',pc:7,ports:[
+    {name:'小名浜',hc:1},{name:'相馬',hc:2}
+  ]},
+  {name:'茨城県',pc:8,ports:[
+    {name:'大洗',hc:1},{name:'鹿島',hc:2},{name:'日立',hc:3}
+  ]},
+  {name:'千葉県',pc:12,ports:[
+    {name:'銚子',hc:1},{name:'館山',hc:2},{name:'千葉',hc:3},{name:'勝浦',hc:4},{name:'木更津',hc:5}
+  ]},
+  {name:'東京都',pc:13,ports:[
+    {name:'東京(晴海)',hc:1},{name:'芝浦',hc:2},{name:'八丈島',hc:3},{name:'三宅島',hc:4},{name:'父島',hc:5}
+  ]},
+  {name:'神奈川県',pc:14,ports:[
+    {name:'横浜',hc:1},{name:'横須賀',hc:2},{name:'小田原',hc:3},{name:'三崎',hc:4}
+  ]},
+  {name:'新潟県',pc:15,ports:[
+    {name:'新潟',hc:1},{name:'直江津',hc:2},{name:'両津',hc:3},{name:'柏崎',hc:4}
+  ]},
+  {name:'富山県',pc:16,ports:[
+    {name:'伏木(富山新港)',hc:1},{name:'魚津',hc:2}
+  ]},
+  {name:'石川県',pc:17,ports:[
+    {name:'金沢',hc:1},{name:'七尾',hc:2},{name:'輪島',hc:3},{name:'珠洲',hc:4}
+  ]},
+  {name:'福井県',pc:18,ports:[
+    {name:'敦賀',hc:1},{name:'福井',hc:2},{name:'小浜',hc:3}
+  ]},
+  {name:'静岡県',pc:22,ports:[
+    {name:'清水',hc:1},{name:'御前崎',hc:2},{name:'下田',hc:3},{name:'田子の浦',hc:4},{name:'沼津',hc:5}
+  ]},
+  {name:'愛知県',pc:23,ports:[
+    {name:'名古屋',hc:1},{name:'三河(蒲郡)',hc:2},{name:'衣浦',hc:3},{name:'師崎',hc:4}
+  ]},
+  {name:'三重県',pc:24,ports:[
+    {name:'四日市',hc:1},{name:'津',hc:2},{name:'鳥羽',hc:3},{name:'尾鷲',hc:4},{name:'熊野',hc:5}
+  ]},
+  {name:'京都府',pc:26,ports:[
+    {name:'舞鶴',hc:1},{name:'宮津',hc:2}
+  ]},
+  {name:'大阪府',pc:27,ports:[
+    {name:'大阪',hc:1},{name:'堺',hc:2},{name:'岸和田',hc:3}
+  ]},
+  {name:'兵庫県',pc:28,ports:[
+    {name:'神戸',hc:1},{name:'姫路',hc:2},{name:'由良',hc:3},{name:'明石',hc:4},{name:'洲本',hc:5},{name:'柴山',hc:6}
+  ]},
+  {name:'和歌山県',pc:30,ports:[
+    {name:'和歌山',hc:1},{name:'串本',hc:2},{name:'新宮',hc:3},{name:'御坊',hc:4},{name:'白浜',hc:5}
+  ]},
+  {name:'鳥取県',pc:31,ports:[
+    {name:'境港',hc:1},{name:'鳥取',hc:2}
+  ]},
+  {name:'島根県',pc:32,ports:[
+    {name:'浜田',hc:1},{name:'境',hc:2},{name:'西郷',hc:3}
+  ]},
+  {name:'岡山県',pc:33,ports:[
+    {name:'宇野',hc:1},{name:'水島',hc:2},{name:'岡山',hc:3}
+  ]},
+  {name:'広島県',pc:34,ports:[
+    {name:'広島',hc:1},{name:'呉',hc:2},{name:'福山',hc:3},{name:'尾道',hc:4},{name:'竹原',hc:5}
+  ]},
+  {name:'山口県',pc:35,ports:[
+    {name:'下関',hc:1},{name:'岩国',hc:2},{name:'萩',hc:3},{name:'徳山',hc:4},{name:'小野田',hc:5}
+  ]},
+  {name:'徳島県',pc:36,ports:[
+    {name:'徳島',hc:1},{name:'小松島',hc:2},{name:'日和佐',hc:3}
+  ]},
+  {name:'香川県',pc:37,ports:[
+    {name:'高松',hc:1},{name:'坂出',hc:2},{name:'丸亀',hc:3},{name:'多度津',hc:4}
+  ]},
+  {name:'愛媛県',pc:38,ports:[
+    {name:'松山(三津)',hc:1},{name:'伊予',hc:2},{name:'今治',hc:3},{name:'新居浜',hc:4},
+    {name:'三島川之江',hc:5},{name:'八幡浜',hc:6},{name:'宇和島',hc:7},{name:'御荘(三崎)',hc:8},
+    {name:'川之石',hc:9},{name:'菊間',hc:10},{name:'波止浜',hc:11},{name:'郡中',hc:12},
+    {name:'吉田',hc:13},{name:'西予(三瓶)',hc:14},{name:'内子',hc:15},{name:'上浦(弓削)',hc:16},
+    {name:'伯方',hc:17},{name:'大三島宮浦',hc:18},{name:'大下',hc:19},{name:'由良半島須賀',hc:20},
+    {name:'長浜',hc:21},{name:'四坂島',hc:22},{name:'石油基地沖合',hc:23},{name:'三津浜',hc:24},
+    {name:'津島',hc:25},{name:'津島高田',hc:26},{name:'大洲長浜',hc:27},{name:'深浦',hc:28},
+    {name:'佐田岬伊方',hc:29}
+  ]},
+  {name:'高知県',pc:39,ports:[
+    {name:'高知',hc:1},{name:'須崎',hc:2},{name:'室戸',hc:3},{name:'足摺',hc:4},{name:'土佐清水',hc:5}
+  ]},
+  {name:'福岡県',pc:40,ports:[
+    {name:'博多',hc:1},{name:'北九州(門司)',hc:2},{name:'苅田',hc:3},{name:'大牟田',hc:4}
+  ]},
+  {name:'佐賀県',pc:41,ports:[
+    {name:'唐津',hc:1},{name:'伊万里',hc:2}
+  ]},
+  {name:'長崎県',pc:42,ports:[
+    {name:'長崎',hc:1},{name:'佐世保',hc:2},{name:'平戸',hc:3},{name:'福江',hc:4},{name:'厳原',hc:5}
+  ]},
+  {name:'熊本県',pc:43,ports:[
+    {name:'熊本(三角)',hc:1},{name:'八代',hc:2},{name:'水俣',hc:3}
+  ]},
+  {name:'大分県',pc:44,ports:[
+    {name:'大分',hc:1},{name:'別府',hc:2},{name:'佐伯',hc:3},{name:'津久見',hc:4}
+  ]},
+  {name:'宮崎県',pc:45,ports:[
+    {name:'宮崎',hc:1},{name:'油津',hc:2},{name:'細島',hc:3},{name:'延岡',hc:4}
+  ]},
+  {name:'鹿児島県',pc:46,ports:[
+    {name:'鹿児島',hc:1},{name:'志布志',hc:2},{name:'名瀬',hc:3},{name:'枕崎',hc:4},{name:'種子島',hc:5}
+  ]},
+  {name:'沖縄県',pc:47,ports:[
+    {name:'那覇',hc:1},{name:'石垣',hc:2},{name:'平良(宮古)',hc:3},{name:'名護',hc:4},{name:'中城湾',hc:5}
+  ]}
+];
+
+/**************** DOM refs *****************/
+const prefSel = document.getElementById('prefSelect');
+const portSel = document.getElementById('portSelect');
+const portLbl = document.getElementById('portLabel');
+const errEl   = document.getElementById('err');
+const hintEl  = document.getElementById('hint');
+const chartsDiv = document.getElementById('charts');
+let charts = [];
+
+// 都道府県セレクト初期化
+prefectures.forEach((p, i) => {
+  prefSel.insertAdjacentHTML('beforeend', `<option value="${i}">${p.name}</option>`);
+});
+
+// 都道府県変更時 → 港リスト更新
+prefSel.addEventListener('change', () => {
+  const pref = prefectures[prefSel.value];
+  portSel.innerHTML = '';
+  if (pref) {
+    pref.ports.forEach(p => {
+      portSel.insertAdjacentHTML('beforeend', `<option value="${p.hc}">${p.name}</option>`);
+    });
+  }
+});
+
+// 初期値: 愛媛県
+prefSel.value = prefectures.findIndex(p => p.pc === 38);
+prefSel.dispatchEvent(new Event('change'));
+document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
+
+/**************** 極値抽出 *****************/
+function peaksTroughs(list, labels) {
+  const pk = [], tr = [];
+  for (let i = 1; i < list.length - 1; i++) {
+    const prev = list[i-1].cm, cur = list[i].cm, next = list[i+1].cm;
+    if (cur > prev && cur > next) pk.push({x: labels[i], y: cur});
+    if (cur < prev && cur < next) tr.push({x: labels[i], y: cur});
+  }
+  return {pk, tr};
+}
+
+/**************** API呼び出し *****************/
+async function fetchTide(pc, hc, date) {
+  const y  = date.getFullYear();
+  const m  = String(date.getMonth() + 1).padStart(2, '0');
+  const dy = String(date.getDate()).padStart(2, '0');
+  const url = `/api/tide?pc=${pc}&hc=${hc}&yr=${y}&mn=${m}&dy=${dy}&rg=day`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  const j = await res.json();
+  if (j.error) throw new Error(j.error);
+  if (j.status !== 1) throw new Error(j.message || 'APIエラー');
+  return j;
+}
+
+/**************** 描画 *****************/
+async function draw() {
+  errEl.textContent = '';
+  hintEl.textContent = '読み込み中…';
+  charts.forEach(c => c.destroy());
+  charts = [];
+  chartsDiv.innerHTML = '';
+
+  const pref = prefectures[prefSel.value];
+  const hc = portSel.value;
+  const portName = portSel.selectedOptions[0].textContent;
+  portLbl.textContent = `（${pref.name} ${portName}）`;
+
+  const baseDate = new Date(document.getElementById('dateInput').value);
+
+  try {
+    for (let offset = -1; offset <= 1; offset++) {
+      const d = new Date(baseDate);
+      d.setDate(d.getDate() + offset);
+
+      const j = await fetchTide(pref.pc, hc, d);
+      const dateKey = Object.keys(j.tide.chart)[0];
+      const dayData = j.tide.chart[dateKey];
+      const list = dayData.tide;
+      const labels = list.map(t => t.time);
+      const data = list.map(t => t.cm);
+      const {pk, tr} = peaksTroughs(list, labels);
+
+      // 潮名・月齢情報
+      const moonTitle = dayData.moon?.title || '';
+      const moonAge = dayData.moon?.age != null ? `月齢${dayData.moon.age}` : '';
+      const sunRise = dayData.sun?.rise || '';
+      const sunSet  = dayData.sun?.set || '';
+      const dayLabel = offset === -1 ? '前日' : offset === 0 ? '指定日' : '翌日';
+      const subtitle = [moonTitle, moonAge, sunRise ? `日出${sunRise}` : '', sunSet ? `日没${sunSet}` : ''].filter(Boolean).join(' / ');
+
+      const wrap = document.createElement('div');
+      wrap.className = 'chart-wrap';
+      const canvas = document.createElement('canvas');
+      wrap.appendChild(canvas);
+      chartsDiv.appendChild(wrap);
+
+      charts.push(new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {label: '潮位(cm)', data, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.08)', borderWidth: 2.5, pointRadius: 0, tension: .2, fill: true},
+            {type: 'scatter', label: '満潮', data: pk, pointRadius: 6, backgroundColor: '#dc2626', borderColor: '#dc2626'},
+            {type: 'scatter', label: '干潮', data: tr, pointStyle: 'rectRot', pointRadius: 6, backgroundColor: '#0284c7', borderColor: '#0284c7'}
+          ]
+        },
+        options: {
+          maintainAspectRatio: true,
+          plugins: {
+            title: {display: true, text: `${dateKey}（${dayLabel}）  ${subtitle}`, align: 'start', font: {size: 14}},
+            legend: {labels: {boxWidth: 14}},
+            tooltip: {
+              callbacks: {
+                label: ctx => `${ctx.dataset.label === '潮位(cm)' ? '' : ctx.dataset.label + ': '}${ctx.formattedValue} cm`
+              }
+            }
+          },
+          interaction: {mode: 'nearest', axis: 'x', intersect: false},
+          scales: {
+            x: {title: {display: true, text: '時刻'}, ticks: {autoSkip: false, color: '#333', callback: v => labels[v]?.endsWith(':00') ? labels[v] : ''}, grid: {color: '#e5e7eb'}},
+            y: {title: {display: true, text: '潮位(cm)'}, ticks: {color: '#333'}, grid: {color: '#e5e7eb'}}
+          }
+        }
+      }));
+    }
+    hintEl.textContent = '';
+  } catch (e) {
+    hintEl.textContent = '';
+    errEl.textContent = 'データ取得失敗: ' + e.message;
+  }
+}
+
+document.getElementById('ctrl').addEventListener('submit', e => { e.preventDefault(); draw(); });
+
+// 初回表示
+draw();
+</script>
+</body>
+</html>
