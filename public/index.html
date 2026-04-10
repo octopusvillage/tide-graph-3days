@@ -305,6 +305,7 @@ async function draw() {
           ]
         },
         options: {
+          animation: false,
           maintainAspectRatio: true,
           plugins: {
             title: {display: true, text: `${dateKey}（${dayLabel}）  ${subtitle}`, align: 'start', font: {size: fontSizes.title, weight: 'bold'}},
@@ -337,15 +338,12 @@ async function printCharts() {
   if (!charts.length) { alert('先にグラフを表示してください'); return; }
   fontSizes = FONT_PRINT;
   await draw();
-  // 描画完了を待ってから印刷
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      window.print();
-      // 印刷ダイアログ閉じた後に画面用に戻す
-      fontSizes = FONT_SCREEN;
-      draw();
-    });
-  });
+  // Chart.jsのアニメーション完了を待つ
+  await new Promise(resolve => setTimeout(resolve, 500));
+  window.print();
+  // 印刷ダイアログ閉じた後に画面用に戻す
+  fontSizes = FONT_SCREEN;
+  draw();
 }
 
 // 初回表示
