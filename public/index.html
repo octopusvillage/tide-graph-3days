@@ -22,13 +22,14 @@
     .hint{font-size:.85rem;color:#555;margin-top:.25rem;}
     #portLabel{font-size:1rem;font-weight:600;}
     @media print{
-      @page{margin:10mm;}
-      body{margin:0;font-size:10pt;background:#fff;}
+      @page{size:A4 portrait;margin:8mm 10mm;}
+      body{margin:0;font-size:9pt;background:#fff;}
       form,#hint,#err{display:none;}
-      h1{margin:0 0 4mm;font-size:14pt;}
-      :root{--gap:8mm;}
-      .chart-wrap{box-shadow:none;padding:4mm 0;}
-      .chart-wrap canvas{max-height:80mm;}
+      h1{margin:0 0 2mm;font-size:12pt;}
+      :root{--gap:2mm;}
+      #charts{gap:2mm;}
+      .chart-wrap{box-shadow:none;padding:1mm 0;break-inside:avoid;}
+      .chart-wrap canvas{max-height:75mm;}
     }
   </style>
 </head>
@@ -297,8 +298,8 @@ async function draw() {
         options: {
           maintainAspectRatio: true,
           plugins: {
-            title: {display: true, text: `${dateKey}（${dayLabel}）  ${subtitle}`, align: 'start', font: {size: 14}},
-            legend: {labels: {boxWidth: 14}},
+            title: {display: true, text: `${dateKey}（${dayLabel}）  ${subtitle}`, align: 'start', font: {size: 18, weight: 'bold'}},
+            legend: {labels: {boxWidth: 14, font: {size: 15}}},
             tooltip: {
               callbacks: {
                 label: ctx => `${ctx.dataset.label === '潮位(cm)' ? '' : ctx.dataset.label + ': '}${ctx.formattedValue} cm`
