@@ -52,6 +52,10 @@
     <label>&nbsp;</label>
     <button type="submit">表示</button>
   </div>
+  <div class="form-group">
+    <label>&nbsp;</label>
+    <button type="button" onclick="printCharts()">印刷</button>
+  </div>
 </form>
 <p class="error" id="err"></p>
 <p class="hint" id="hint"></p>
@@ -243,6 +247,11 @@ async function fetchTide(pc, hc, date) {
   return j;
 }
 
+/**************** フォントサイズ設定 *****************/
+const FONT_SCREEN = {title: 18, legend: 15, tick: 12, axisTitle: 12};
+const FONT_PRINT  = {title: 28, legend: 22, tick: 18, axisTitle: 18};
+let fontSizes = FONT_SCREEN;
+
 /**************** 描画 *****************/
 async function draw() {
   errEl.textContent = '';
@@ -298,8 +307,8 @@ async function draw() {
         options: {
           maintainAspectRatio: true,
           plugins: {
-            title: {display: true, text: `${dateKey}（${dayLabel}）  ${subtitle}`, align: 'start', font: {size: 18, weight: 'bold'}},
-            legend: {labels: {boxWidth: 14, font: {size: 15}}},
+            title: {display: true, text: `${dateKey}（${dayLabel}）  ${subtitle}`, align: 'start', font: {size: fontSizes.title, weight: 'bold'}},
+            legend: {labels: {boxWidth: 14, font: {size: fontSizes.legend}}},
             tooltip: {
               callbacks: {
                 label: ctx => `${ctx.dataset.label === '潮位(cm)' ? '' : ctx.dataset.label + ': '}${ctx.formattedValue} cm`
@@ -308,8 +317,8 @@ async function draw() {
           },
           interaction: {mode: 'nearest', axis: 'x', intersect: false},
           scales: {
-            x: {title: {display: true, text: '時刻'}, ticks: {autoSkip: false, color: '#333', callback: v => labels[v]?.endsWith(':00') ? labels[v] : ''}, grid: {color: '#e5e7eb'}},
-            y: {title: {display: true, text: '潮位(cm)'}, ticks: {color: '#333'}, grid: {color: '#e5e7eb'}}
+            x: {title: {display: true, text: '時刻', font: {size: fontSizes.axisTitle}}, ticks: {autoSkip: false, color: '#333', font: {size: fontSizes.tick}, callback: v => labels[v]?.endsWith(':00') ? labels[v] : ''}, grid: {color: '#e5e7eb'}},
+            y: {title: {display: true, text: '潮位(cm)', font: {size: fontSizes.axisTitle}}, ticks: {color: '#333', font: {size: fontSizes.tick}}, grid: {color: '#e5e7eb'}}
           }
         }
       }));
@@ -322,6 +331,22 @@ async function draw() {
 }
 
 document.getElementById('ctrl').addEventListener('submit', e => { e.preventDefault(); draw(); });
+
+/**************** 印刷用：大フォントで再描画→印刷→戻す *****************/
+async function printCharts() {
+  if (!charts.length) { alert('先にグラフを表示してください'); return; }
+  fontSizes = FONT_PRINT;
+  await draw();
+  // 描画完了を待ってから印刷
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      window.print();
+      // 印刷ダイアログ閉じた後に画面用に戻す
+      fontSizes = FONT_SCREEN;
+      draw();
+    });
+  });
+}
 
 // 初回表示
 draw();
