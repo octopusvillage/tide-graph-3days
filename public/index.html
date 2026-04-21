@@ -63,7 +63,7 @@
     /* コンテナサイズ = Chart.jsが参照するサイズ */
     .chart-wrap .canvas-container{
       position:relative;
-      height:200px;              /* スマホ: 固定高さ */
+      height:280px;              /* スマホ: 固定高さ */
     }
     @media(min-width:600px){
       .chart-wrap .canvas-container{
@@ -351,9 +351,11 @@ async function draw() {
       wrap.appendChild(container);
       chartsDiv.appendChild(wrap);
 
-      // タイトルを2行に分割（スマホで長文折り返し対応）
-      const titleLine1 = `${dateKey}（${dayLabel}）`;
-      const titleLine2 = subtitle;
+      const isMobile = window.innerWidth < 600;
+      // スマホ: 1行タイトル（日付のみ）、PC: 2行（日付＋潮名/日出没）
+      const titleText = isMobile
+        ? `${dateKey}（${dayLabel}）`
+        : (subtitle ? [`${dateKey}（${dayLabel}）`, subtitle] : `${dateKey}（${dayLabel}）`);
 
       charts.push(new Chart(canvas.getContext('2d'), {
         type: 'line',
@@ -370,7 +372,7 @@ async function draw() {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            title: {display: true, text: titleLine2 ? [titleLine1, titleLine2] : titleLine1, align: 'start', font: {size: fontSizes.title, weight: 'bold'}},
+            title: {display: true, text: titleText, align: 'start', font: {size: fontSizes.title, weight: 'bold'}},
             legend: {labels: {boxWidth: 12, font: {size: fontSizes.legend}}},
             tooltip: {
               callbacks: {
@@ -380,8 +382,16 @@ async function draw() {
           },
           interaction: {mode: 'nearest', axis: 'x', intersect: false},
           scales: {
-            x: {title: {display: true, text: '時刻', font: {size: fontSizes.axisTitle}}, ticks: {autoSkip: false, color: '#333', font: {size: fontSizes.tick}, callback: v => labels[v]?.endsWith(':00') ? labels[v] : ''}, grid: {color: '#e5e7eb'}},
-            y: {title: {display: true, text: '潮位(cm)', font: {size: fontSizes.axisTitle}}, ticks: {color: '#333', font: {size: fontSizes.tick}}, grid: {color: '#e5e7eb'}}
+            x: {
+              title: {display: !isMobile, text: '時刻', font: {size: fontSizes.axisTitle}},
+              ticks: {autoSkip: false, color: '#333', font: {size: fontSizes.tick}, callback: v => labels[v]?.endsWith(':00') ? labels[v] : ''},
+              grid: {color: '#e5e7eb'}
+            },
+            y: {
+              title: {display: !isMobile, text: '潮位(cm)', font: {size: fontSizes.axisTitle}},
+              ticks: {color: '#333', font: {size: fontSizes.tick}},
+              grid: {color: '#e5e7eb'}
+            }
           }
         }
       }));
