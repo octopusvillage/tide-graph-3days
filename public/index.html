@@ -60,13 +60,16 @@
       background:#fff;padding:10px;
       border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.1);
     }
-    /* コンテナ高さ = Chart.jsが参照するサイズ */
+    /* コンテナサイズ = Chart.jsが参照するサイズ */
     .chart-wrap .canvas-container{
       position:relative;
-      height:220px;   /* スマホ */
+      height:200px;              /* スマホ: 固定高さ */
     }
     @media(min-width:600px){
-      .chart-wrap .canvas-container{height:260px;}
+      .chart-wrap .canvas-container{
+        height:auto;
+        aspect-ratio:8/3;        /* PC: 幅に対して比率で高さ自動計算 */
+      }
     }
 
     /* ── メッセージ ── */
@@ -298,9 +301,10 @@ async function fetchTide(pc, hc, date) {
 }
 
 /**************** フォントサイズ設定 *****************/
+const FONT_MOBILE = {title: 12, legend: 11, tick: 10, axisTitle: 10};
 const FONT_SCREEN = {title: 18, legend: 15, tick: 12, axisTitle: 12};
 const FONT_PRINT  = {title: 28, legend: 22, tick: 18, axisTitle: 18};
-let fontSizes = FONT_SCREEN;
+let fontSizes = window.innerWidth < 600 ? FONT_MOBILE : FONT_SCREEN;
 
 /**************** 描画 *****************/
 async function draw() {
