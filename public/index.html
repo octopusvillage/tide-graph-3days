@@ -286,14 +286,11 @@ prefSel.dispatchEvent(new Event('change'));
 portSel.value = 13;
 document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
 
-/**************** 極値抽出 *****************/
-function peaksTroughs(list, labels) {
-  const pk = [], tr = [];
-  for (let i = 1; i < list.length - 1; i++) {
-    const prev = list[i-1].cm, cur = list[i].cm, next = list[i+1].cm;
-    if (cur > prev && cur > next) pk.push({x: labels[i], y: cur});
-    if (cur < prev && cur < next) tr.push({x: labels[i], y: cur});
-  }
+/**************** APIの flood/edd から満潮・干潮データを取得 *****************/
+function extractPeaks(dayData) {
+  // APIが返す正確な時刻・潮位をそのまま使う（自力検出より精度が高い）
+  const pk = (dayData.flood || []).map(f => ({x: f.time, y: f.cm}));
+  const tr = (dayData.edd   || []).map(e => ({x: e.time, y: e.cm}));
   return {pk, tr};
 }
 
@@ -343,7 +340,7 @@ async function draw() {
       const list = dayData.tide;
       const labels = list.map(t => t.time);
       const data = list.map(t => t.cm);
-      const {pk, tr} = peaksTroughs(list, labels);
+      const {pk, tr} = extractPeaks(dayData);
 
       // 潮名・月齢情報
       const moonTitle = dayData.moon?.title || '';
