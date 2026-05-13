@@ -116,132 +116,141 @@
 
 <script>
 /**************** 港データ (tide736.net pc/hc) *****************/
+// ※ hcコードはAPIの実測値（tide736.net）に基づく
 const prefectures = [
   {name:'北海道',pc:1,ports:[
-    {name:'函館',hc:1},{name:'小樽',hc:2},{name:'釧路',hc:3},{name:'根室花咲',hc:4},{name:'稚内',hc:5},
-    {name:'室蘭',hc:6},{name:'苫小牧',hc:7},{name:'十勝',hc:8},{name:'網走',hc:9},{name:'紋別',hc:10},
-    {name:'留萌',hc:11},{name:'浦河',hc:12},{name:'岩内',hc:13},{name:'江差',hc:14}
+    {name:'積丹',hc:13},{name:'根室',hc:14},{name:'羅臼',hc:16},{name:'網走',hc:18},{name:'紋別',hc:19},
+    {name:'雄武',hc:20},{name:'江差',hc:21},{name:'稚内',hc:24},{name:'留萌',hc:30},{name:'小樽',hc:32}
   ]},
   {name:'青森県',pc:2,ports:[
-    {name:'青森',hc:1},{name:'八戸',hc:2},{name:'むつ',hc:3},{name:'深浦',hc:4},{name:'鯵ヶ沢',hc:5}
+    {name:'青森',hc:4},{name:'小湊',hc:6},{name:'野辺地',hc:7},{name:'大湊(むつ)',hc:8},{name:'大間',hc:9},
+    {name:'八戸',hc:15},{name:'深浦',hc:17},{name:'鰺ヶ沢',hc:18},{name:'浅虫',hc:21}
   ]},
   {name:'岩手県',pc:3,ports:[
-    {name:'宮古',hc:1},{name:'釜石',hc:2},{name:'大船渡',hc:3},{name:'久慈',hc:4}
+    {name:'久慈',hc:1},{name:'宮古',hc:2},{name:'山田',hc:3},{name:'釜石',hc:4},{name:'大船渡',hc:5}
   ]},
   {name:'宮城県',pc:4,ports:[
-    {name:'石巻(鮎川)',hc:1},{name:'仙台(塩釜)',hc:2},{name:'気仙沼',hc:3}
+    {name:'気仙沼',hc:1},{name:'女川',hc:3},{name:'鮎川',hc:4},{name:'石巻',hc:6},
+    {name:'仙台',hc:11},{name:'閖上',hc:12},{name:'志津川',hc:13}
   ]},
   {name:'秋田県',pc:5,ports:[
-    {name:'秋田',hc:1},{name:'能代',hc:2},{name:'船川',hc:3}
+    {name:'秋田',hc:2},{name:'船川',hc:3},{name:'能代',hc:4},{name:'男鹿',hc:6}
   ]},
   {name:'山形県',pc:6,ports:[
-    {name:'酒田',hc:1}
+    {name:'鼠ヶ関',hc:1},{name:'由良',hc:2},{name:'加茂',hc:3},{name:'酒田',hc:4}
   ]},
   {name:'福島県',pc:7,ports:[
-    {name:'小名浜',hc:1},{name:'相馬',hc:2}
+    {name:'相馬',hc:1},{name:'松川浦',hc:2},{name:'富岡',hc:4},{name:'四倉',hc:5},{name:'小名浜',hc:6}
   ]},
   {name:'茨城県',pc:8,ports:[
-    {name:'大洗',hc:1},{name:'鹿島',hc:2},{name:'日立',hc:3}
+    {name:'大津',hc:1},{name:'日立',hc:2},{name:'那珂湊',hc:3},{name:'鹿島',hc:4},{name:'大洗',hc:5}
   ]},
   {name:'千葉県',pc:12,ports:[
-    {name:'銚子',hc:1},{name:'館山',hc:2},{name:'千葉',hc:3},{name:'勝浦',hc:4},{name:'木更津',hc:5}
+    {name:'銚子',hc:2},{name:'上総勝浦',hc:5},{name:'鴨川',hc:6},{name:'白浜',hc:7},
+    {name:'君津',hc:12},{name:'船橋',hc:18},{name:'館山',hc:19}
   ]},
   {name:'東京都',pc:13,ports:[
-    {name:'東京(晴海)',hc:1},{name:'芝浦',hc:2},{name:'八丈島',hc:3},{name:'三宅島',hc:4},{name:'父島',hc:5}
+    {name:'築地',hc:1},{name:'芝浦',hc:2},{name:'羽田',hc:3},{name:'晴海',hc:14},
+    {name:'波浮(大島)',hc:5},{name:'神湊(八丈島)',hc:9},{name:'二見(小笠原)',hc:11}
   ]},
   {name:'神奈川県',pc:14,ports:[
-    {name:'横浜',hc:1},{name:'横須賀',hc:2},{name:'小田原',hc:3},{name:'三崎',hc:4}
+    {name:'横須賀',hc:7},{name:'浦賀',hc:9},{name:'城ヶ島',hc:13},
+    {name:'油壺',hc:16},{name:'小田原',hc:17},{name:'真鶴',hc:20}
   ]},
   {name:'新潟県',pc:15,ports:[
-    {name:'新潟',hc:1},{name:'直江津',hc:2},{name:'両津',hc:3},{name:'柏崎',hc:4}
+    {name:'直江津',hc:2},{name:'柏崎',hc:3},{name:'新潟(西港)',hc:6},
+    {name:'小木',hc:8},{name:'両津',hc:9},{name:'新潟(東港)',hc:13}
   ]},
   {name:'富山県',pc:16,ports:[
-    {name:'伏木(富山新港)',hc:1},{name:'魚津',hc:2}
+    {name:'伏木',hc:2},{name:'富山',hc:3}
   ]},
   {name:'石川県',pc:17,ports:[
-    {name:'金沢',hc:1},{name:'七尾',hc:2},{name:'輪島',hc:3},{name:'珠洲',hc:4}
+    {name:'金沢',hc:1},{name:'輪島',hc:4},{name:'七尾',hc:8},{name:'穴水',hc:9}
   ]},
   {name:'福井県',pc:18,ports:[
-    {name:'敦賀',hc:1},{name:'福井',hc:2},{name:'小浜',hc:3}
+    {name:'小浜',hc:3},{name:'敦賀',hc:5},{name:'福井',hc:6},{name:'三国',hc:7}
   ]},
   {name:'静岡県',pc:22,ports:[
-    {name:'清水',hc:1},{name:'御前崎',hc:2},{name:'下田',hc:3},{name:'田子の浦',hc:4},{name:'沼津',hc:5}
+    {name:'下田',hc:5},{name:'田子の浦',hc:11},{name:'清水',hc:13},
+    {name:'焼津',hc:15},{name:'御前崎',hc:17},{name:'熱海',hc:19}
   ]},
   {name:'愛知県',pc:23,ports:[
-    {name:'名古屋',hc:1},{name:'三河(蒲郡)',hc:2},{name:'衣浦',hc:3},{name:'師崎',hc:4}
+    {name:'伊良湖',hc:1},{name:'蒲郡',hc:9},{name:'名古屋',hc:17}
   ]},
   {name:'三重県',pc:24,ports:[
-    {name:'四日市',hc:1},{name:'津',hc:2},{name:'鳥羽',hc:3},{name:'尾鷲',hc:4},{name:'熊野',hc:5}
+    {name:'四日市',hc:1},{name:'津',hc:2},{name:'鳥羽',hc:5},
+    {name:'五ヶ所',hc:8},{name:'尾鷲',hc:11},{name:'錦',hc:15}
   ]},
   {name:'京都府',pc:26,ports:[
-    {name:'舞鶴',hc:1},{name:'宮津',hc:2}
+    {name:'舞鶴(東港)',hc:5},{name:'舞鶴(西港)',hc:6}
   ]},
   {name:'大阪府',pc:27,ports:[
-    {name:'大阪',hc:1},{name:'堺',hc:2},{name:'岸和田',hc:3}
+    {name:'岸和田',hc:3},{name:'堺',hc:5},{name:'大阪',hc:6}
   ]},
   {name:'兵庫県',pc:28,ports:[
-    {name:'神戸',hc:1},{name:'姫路',hc:2},{name:'由良',hc:3},{name:'明石',hc:4},{name:'洲本',hc:5},{name:'柴山',hc:6}
+    {name:'柴山',hc:1},{name:'由良',hc:3},{name:'洲本',hc:4},{name:'神戸',hc:7},
+    {name:'明石',hc:9},{name:'高砂',hc:16},{name:'飾磨(姫路)',hc:17},{name:'相生',hc:19},{name:'赤穂',hc:20}
   ]},
   {name:'和歌山県',pc:30,ports:[
-    {name:'和歌山',hc:1},{name:'串本',hc:2},{name:'新宮',hc:3},{name:'御坊',hc:4},{name:'白浜',hc:5}
+    {name:'紀伊勝浦',hc:1},{name:'串本',hc:3},{name:'由良',hc:8},{name:'和歌山',hc:11},{name:'田辺',hc:13}
   ]},
   {name:'鳥取県',pc:31,ports:[
-    {name:'境港',hc:1},{name:'鳥取',hc:2}
+    {name:'境港',hc:2},{name:'赤崎',hc:4},{name:'田尻',hc:6}
   ]},
   {name:'島根県',pc:32,ports:[
-    {name:'浜田',hc:1},{name:'境',hc:2},{name:'西郷',hc:3}
+    {name:'西郷(隠岐)',hc:16},{name:'松江',hc:17}
   ]},
   {name:'岡山県',pc:33,ports:[
-    {name:'宇野',hc:1},{name:'水島',hc:2},{name:'岡山',hc:3}
+    {name:'宇野',hc:6},{name:'水島',hc:8},{name:'玉島',hc:10}
   ]},
   {name:'広島県',pc:34,ports:[
-    {name:'広島',hc:1},{name:'呉',hc:2},{name:'福山',hc:3},{name:'尾道',hc:4},{name:'竹原',hc:5}
+    {name:'福山',hc:1},{name:'尾道',hc:4},{name:'広島',hc:19},{name:'呉',hc:20},{name:'竹原',hc:25}
   ]},
   {name:'山口県',pc:35,ports:[
-    {name:'下関',hc:1},{name:'岩国',hc:2},{name:'萩',hc:3},{name:'徳山',hc:4},{name:'小野田',hc:5}
+    {name:'岩国',hc:1},{name:'徳山',hc:10},{name:'小野田',hc:14},{name:'下関',hc:19},{name:'萩',hc:29}
   ]},
   {name:'徳島県',pc:36,ports:[
-    {name:'徳島',hc:1},{name:'小松島',hc:2},{name:'日和佐',hc:3}
+    {name:'日和佐',hc:1},{name:'富岡',hc:3},{name:'小松島',hc:4}
   ]},
   {name:'香川県',pc:37,ports:[
-    {name:'高松',hc:1},{name:'坂出',hc:2},{name:'丸亀',hc:3},{name:'多度津',hc:4}
+    {name:'引田',hc:1},{name:'坂手(小豆島)',hc:2},{name:'大部(小豆島)',hc:3},{name:'男木島',hc:7},
+    {name:'高松',hc:8},{name:'坂出',hc:9},{name:'丸亀',hc:10},{name:'観音寺',hc:16}
   ]},
   {name:'愛媛県',pc:38,ports:[
-    {name:'松山(三津)',hc:1},{name:'伊予',hc:2},{name:'今治',hc:3},{name:'新居浜',hc:4},
-    {name:'三島川之江',hc:5},{name:'八幡浜',hc:6},{name:'宇和島',hc:7},{name:'御荘(三崎)',hc:8},
-    {name:'川之石',hc:9},{name:'菊間',hc:10},{name:'波止浜',hc:11},{name:'郡中',hc:12},
-    {name:'吉田',hc:13},{name:'西予(三瓶)',hc:14},{name:'内子',hc:15},{name:'上浦(弓削)',hc:16},
-    {name:'伯方',hc:17},{name:'大三島宮浦',hc:18},{name:'大下',hc:19},{name:'由良半島須賀',hc:20},
-    {name:'長浜',hc:21},{name:'四坂島',hc:22},{name:'石油基地沖合',hc:23},{name:'三津浜',hc:24},
-    {name:'津島',hc:25},{name:'津島高田',hc:26},{name:'大洲長浜',hc:27},{name:'深浦',hc:28},
-    {name:'佐田岬伊方',hc:29}
+    {name:'三島',hc:1},{name:'新居浜',hc:3},{name:'今治',hc:6},{name:'波止浜',hc:8},{name:'菊間',hc:9},
+    {name:'松山',hc:13},{name:'長浜',hc:15},{name:'八幡浜',hc:19},{name:'宇和島',hc:21}
   ]},
   {name:'高知県',pc:39,ports:[
-    {name:'高知',hc:1},{name:'須崎',hc:2},{name:'室戸',hc:3},{name:'足摺',hc:4},{name:'土佐清水',hc:5}
+    {name:'甲ノ浦',hc:1},{name:'室戸',hc:3},{name:'高知',hc:4},{name:'須崎',hc:5},{name:'土佐清水',hc:6}
   ]},
   {name:'福岡県',pc:40,ports:[
-    {name:'博多',hc:1},{name:'北九州(門司)',hc:2},{name:'苅田',hc:3},{name:'大牟田',hc:4}
+    {name:'新門司',hc:3},{name:'若松',hc:10},{name:'戸畑',hc:11},
+    {name:'博多',hc:20},{name:'福岡',hc:21},{name:'三池',hc:23}
   ]},
   {name:'佐賀県',pc:41,ports:[
-    {name:'唐津',hc:1},{name:'伊万里',hc:2}
+    {name:'唐津',hc:1},{name:'呼子',hc:2},{name:'若津',hc:8}
   ]},
   {name:'長崎県',pc:42,ports:[
-    {name:'長崎',hc:1},{name:'佐世保',hc:2},{name:'平戸',hc:3},{name:'福江',hc:4},{name:'厳原',hc:5}
+    {name:'郷ノ浦(壱岐)',hc:3},{name:'勝本(壱岐)',hc:4},{name:'芦辺(壱岐)',hc:5},{name:'厳原(対馬)',hc:6}
   ]},
   {name:'熊本県',pc:43,ports:[
-    {name:'熊本(三角)',hc:1},{name:'八代',hc:2},{name:'水俣',hc:3}
+    {name:'本渡',hc:1},{name:'熊本',hc:3},{name:'三角',hc:4},
+    {name:'八代',hc:7},{name:'水俣',hc:10},{name:'牛深',hc:14}
   ]},
   {name:'大分県',pc:44,ports:[
-    {name:'大分',hc:1},{name:'別府',hc:2},{name:'佐伯',hc:3},{name:'津久見',hc:4}
+    {name:'佐賀関',hc:1},{name:'鶴崎',hc:2},{name:'亀川(別府)',hc:4},
+    {name:'姫島',hc:6},{name:'中津',hc:9},{name:'津久見',hc:12},{name:'蒲江',hc:17}
   ]},
   {name:'宮崎県',pc:45,ports:[
-    {name:'宮崎',hc:1},{name:'油津',hc:2},{name:'細島',hc:3},{name:'延岡',hc:4}
+    {name:'油津',hc:3},{name:'細島',hc:6},{name:'美々津',hc:7},{name:'宮崎',hc:9}
   ]},
   {name:'鹿児島県',pc:46,ports:[
-    {name:'鹿児島',hc:1},{name:'志布志',hc:2},{name:'名瀬',hc:3},{name:'枕崎',hc:4},{name:'種子島',hc:5}
+    {name:'枕崎',hc:7},{name:'山川',hc:8},{name:'鹿児島',hc:10},{name:'大泊',hc:16},
+    {name:'志布志',hc:17},{name:'西之表(種子島)',hc:19},{name:'名瀬(奄美)',hc:28}
   ]},
   {name:'沖縄県',pc:47,ports:[
-    {name:'那覇',hc:1},{name:'石垣',hc:2},{name:'平良(宮古)',hc:3},{name:'名護',hc:4},{name:'中城湾',hc:5}
+    {name:'運天',hc:3},{name:'那覇',hc:5},{name:'平良(宮古)',hc:13},
+    {name:'石垣',hc:15},{name:'波照間',hc:29},{name:'渡嘉敷',hc:31},{name:'泡瀬',hc:32}
   ]}
 ];
 
@@ -270,9 +279,11 @@ prefSel.addEventListener('change', () => {
   }
 });
 
-// 初期値: 愛媛県
+// 初期値: 愛媛県 松山
 prefSel.value = prefectures.findIndex(p => p.pc === 38);
 prefSel.dispatchEvent(new Event('change'));
+// 松山(hc=13)を初期選択
+portSel.value = 13;
 document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
 
 /**************** 極値抽出 *****************/
