@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>潮汐グラフ（3日間）</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
   <style>
     *, *::before, *::after{box-sizing:border-box;}
 
@@ -309,9 +310,9 @@ async function fetchTide(pc, hc, date) {
 }
 
 /**************** フォントサイズ設定 *****************/
-const FONT_MOBILE = {title: 12, legend: 11, tick: 10, axisTitle: 10};
-const FONT_SCREEN = {title: 18, legend: 15, tick: 12, axisTitle: 12};
-const FONT_PRINT  = {title: 28, legend: 22, tick: 18, axisTitle: 18};
+const FONT_MOBILE = {title: 12, legend: 11, tick: 10, axisTitle: 10, label: 10};
+const FONT_SCREEN = {title: 18, legend: 15, tick: 12, axisTitle: 12, label: 12};
+const FONT_PRINT  = {title: 28, legend: 22, tick: 18, axisTitle: 18, label: 16};
 let fontSizes = window.innerWidth < 600 ? FONT_MOBILE : FONT_SCREEN;
 
 /**************** 描画 *****************/
@@ -370,9 +371,45 @@ async function draw() {
         data: {
           labels,
           datasets: [
-            {label: '潮位(cm)', data, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.08)', borderWidth: 2.5, pointRadius: 0, tension: .2, fill: true},
-            {type: 'scatter', label: '満潮', data: pk, pointRadius: 6, backgroundColor: '#dc2626', borderColor: '#dc2626'},
-            {type: 'scatter', label: '干潮', data: tr, pointStyle: 'rectRot', pointRadius: 6, backgroundColor: '#0284c7', borderColor: '#0284c7'}
+            {
+              label: '潮位(cm)', data, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.08)',
+              borderWidth: 2.5, pointRadius: 0, tension: .2, fill: true,
+              datalabels: {display: false}  // 折れ線にはラベル不要
+            },
+            {
+              type: 'scatter', label: '満潮', data: pk, pointRadius: 6,
+              backgroundColor: '#dc2626', borderColor: '#dc2626',
+              datalabels: {
+                display: true,
+                align: 'top', anchor: 'end',
+                color: '#dc2626',
+                font: {size: fontSizes.label, weight: 'bold'},
+                formatter: v => `満${v.x}\n${v.y}cm`,
+                padding: 4,
+                backgroundColor: 'rgba(255,255,255,0.85)',
+                borderRadius: 4,
+                borderColor: '#dc2626',
+                borderWidth: 1,
+                textAlign: 'center'
+              }
+            },
+            {
+              type: 'scatter', label: '干潮', data: tr, pointStyle: 'rectRot', pointRadius: 6,
+              backgroundColor: '#0284c7', borderColor: '#0284c7',
+              datalabels: {
+                display: true,
+                align: 'bottom', anchor: 'start',
+                color: '#0284c7',
+                font: {size: fontSizes.label, weight: 'bold'},
+                formatter: v => `干${v.x}\n${v.y}cm`,
+                padding: 4,
+                backgroundColor: 'rgba(255,255,255,0.85)',
+                borderRadius: 4,
+                borderColor: '#0284c7',
+                borderWidth: 1,
+                textAlign: 'center'
+              }
+            }
           ]
         },
         options: {
@@ -380,6 +417,7 @@ async function draw() {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
+            datalabels: {},  // プラグイン有効化（datasets側で個別制御）
             title: {display: true, text: titleText, align: 'start', font: {size: fontSizes.title, weight: 'bold'}},
             legend: {labels: {boxWidth: 12, font: {size: fontSizes.legend}}},
             tooltip: {
